@@ -136,6 +136,41 @@ func TestHourlyCapAndCooldownQueries(t *testing.T) {
 	}
 }
 
+func TestFromUnixLargeBoundNoOverflow(t *testing.T) {
+	// A far-future query bound must map to a positive far-future time on every
+	// platform. The old int64(f*1e9) overflowed for large f and was
+	// platform-dependent (MaxInt64 on arm64, MinInt64 on amd64), which turned an
+	// upper bound negative on Linux and silently dropped every row in CI.
+	to := FromUnix(1e12)
+	if !to.After(time.Now().Add(1000 * time.Hour)) {
+		t.Fatalf("FromUnix(1e12) = %v, want a far-future time", to)
+	}
+	// Roundtrip stays stable for a normal epoch.
+	now := time.Now().UTC().Truncate(time.Millisecond)
+	if got := FromUnix(unix(now)); got.Sub(now).Abs() > time.Millisecond {
+		t.Fatalf("roundtrip drifted: %v vs %v", got, now)
+	}
+}
+
+func TestListWithLargeUpperBound(t *testing.T) {
+	s := openMigrated(t)
+	ctx := context.Background()
+	id, _ := s.InsertPending(ctx, TransmissionMeta{
+		StartedAt: time.Now().UTC(), EndedAt: time.Now().UTC(),
+		Duration: time.Second, Source: "x", Model: "m",
+	})
+	if err := s.FinishTranscription(ctx, id, TranscriptionResult{Text: "hi", Status: "transcribed"}); err != nil {
+		t.Fatal(err)
+	}
+	rows, err := s.ListTransmissionsSince(ctx, FromUnix(0), FromUnix(1e12), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(rows) != 1 {
+		t.Fatalf("want 1 row with a far-future upper bound, got %d", len(rows))
+	}
+}
+
 func TestMigrateDownUpRoundTrip(t *testing.T) {
 	s := openMigrated(t)
 	ctx := context.Background()

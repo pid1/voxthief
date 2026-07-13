@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"embed"
 	"fmt"
+	"math"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -42,12 +43,8 @@ func Open(path string) (*Store, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Single connection for the whole process. With a multi-connection pool a
-	// read can land on a different connection than the write that preceded it,
-	// and under WAL that reader may not yet see the just-committed rows (the
-	// behavior differs by platform — it works on macOS but not on Linux, which
-	// silently lost rows in CI). One connection guarantees read-your-writes and
-	// matches the single-writer discipline (§3.2); WAL still lets a SEPARATE
+	// Single connection for the whole process: guarantees read-your-writes and
+	// matches the single-writer discipline (§3.2). WAL still lets a SEPARATE
 	// process (e.g. `voxthief export`) read concurrently.
 	sdb.SetMaxOpenConns(1)
 	if err := sdb.PingContext(context.Background()); err != nil {
@@ -294,12 +291,25 @@ func (s *Store) ListTransmissionsSince(ctx context.Context, from, to time.Time, 
 	})
 }
 
+// unix converts a time to a REAL epoch (subsecond). It splits seconds from
+// nanoseconds rather than using UnixNano so it stays correct for epochs beyond
+// 2262 and never funnels a huge value through a float→int64 conversion.
 func unix(t time.Time) float64 {
-	return float64(t.UTC().UnixNano()) / 1e9
+	t = t.UTC()
+	return float64(t.Unix()) + float64(t.Nanosecond())/1e9
 }
 
+// fromUnix is the inverse of unix. Crucially it converts the (in-range) whole
+// seconds to int64 directly instead of computing int64(f*1e9): for a large f
+// (e.g. a far-future query bound like 1e12), f*1e9 overflows int64, and an
+// out-of-range float→int64 conversion is platform-dependent — arm64 saturates
+// to MaxInt64 while amd64 wraps to MinInt64. That asymmetry silently turned an
+// upper time bound into a negative time on Linux, dropping every row (only in
+// CI). Splitting seconds from the fraction keeps every conversion in range.
 func fromUnix(f float64) time.Time {
-	return time.Unix(0, int64(f*1e9)).UTC()
+	sec := math.Floor(f)
+	nsec := math.Round((f - sec) * 1e9)
+	return time.Unix(int64(sec), int64(nsec)).UTC()
 }
 
 // FromUnix converts a stored REAL epoch to a time.Time (exported for callers
