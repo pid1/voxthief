@@ -16,6 +16,15 @@ Everything runs offline after the first-run model download. The only outbound
 network call is HTTPS to `api.pushover.net`, and only when you enable alerts.
 No telemetry.
 
+## Demo
+
+Live NOAA weather radio transcribed off an RTL-SDR dongle, whisper running
+locally:
+
+<p align="center">
+  <img src="demo.png" alt="voxthief transcribing NOAA weather radio in the terminal UI" width="100%">
+</p>
+
 ## Quickstart — is it working? (RTL-SDR, ~60 seconds)
 
 No compiler needed — grab a prebuilt binary and point it at a **strong local
