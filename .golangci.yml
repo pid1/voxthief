@@ -1,9 +1,7 @@
 # golangci-lint configuration (§13). Run: make lint
+# Lints the default (non-cgo) build. The whisper.go cgo wrapper builds only with
+# -tags whisper and needs the whisper.cpp static libs, so it is excluded here.
 version: "2"
-
-run:
-  build-tags:
-    - whisper
 
 linters:
   enable:
@@ -13,6 +11,12 @@ linters:
     - unused
     - misspell
     - unconvert
+  exclusions:
+    rules:
+      # Test cleanup (defer store.Close() etc.) does not need error checking.
+      - path: _test\.go
+        linters:
+          - errcheck
 
 issues:
   max-issues-per-linter: 0

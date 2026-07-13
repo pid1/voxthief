@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo.png" alt="voxthief" width="240">
+  <img src="logo.png" alt="voxthief" width="100%">
 </p>
 
 # voxthief
@@ -16,27 +16,54 @@ Everything runs offline after the first-run model download. The only outbound
 network call is HTTPS to `api.pushover.net`, and only when you enable alerts.
 No telemetry.
 
+## Demo
+
+Live NOAA weather radio transcribed off an RTL-SDR dongle, whisper running
+locally:
+
+<p align="center">
+  <img src="demo.png" alt="voxthief transcribing NOAA weather radio in the terminal UI" width="100%">
+</p>
+
 ## Quickstart — is it working? (RTL-SDR, ~60 seconds)
 
-The fastest way to confirm your dongle, drivers, and the whole pipeline work is
-to point voxthief at a **strong local broadcast FM station**. It's high-power
-and always transmitting, so you don't have to wait for anyone to key up.
+No compiler needed — grab a prebuilt binary and point it at a **strong local
+broadcast FM station**. Broadcast FM is high-power and always transmitting, so
+it's the fastest way to confirm your dongle, drivers, and the whole pipeline
+work without waiting for anyone to key up.
+
+**1. Download the binary** for your platform from the
+[latest release](https://github.com/pid1/voxthief/releases/latest) and put it on
+your `PATH`:
+
+| Platform | Asset |
+|---|---|
+| macOS (Apple Silicon) | `voxthief_*_darwin_arm64.tar.gz` |
+| macOS (Intel) | `voxthief_*_darwin_amd64.tar.gz` |
+| Linux x86-64 | `voxthief_*_linux_amd64.tar.gz` |
+| Linux ARM64 (Raspberry Pi 4/5) | `voxthief_*_linux_arm64.tar.gz` |
+| Windows x86-64 | `voxthief_*_windows_amd64.zip` |
 
 ```
-# 1. Prerequisites (macOS shown; see Prerequisites for Linux/Windows)
-xcode-select --install
-brew install cmake rtl-sdr
+tar -xzf voxthief_*_*.tar.gz          # unzip on Windows
+sudo mv voxthief /usr/local/bin/      # or anywhere on your PATH
+```
 
-# 2. Build
-git clone --recurse-submodules https://github.com/pid1/voxthief
-cd voxthief
-make build
+On macOS the binary is unsigned, so clear the quarantine flag once:
+`xattr -d com.apple.quarantine ./voxthief`.
 
-# 3. Plug in the RTL-SDR, then confirm it enumerates
-./voxthief inputs        # should list your dongle under RTL-SDR
+**2. Install the RTL-SDR runtime tools** (only needed for the SDR input):
 
-# 4. Tune a strong local FM station in WIDEBAND mode (--wfm)
-./voxthief listen --input rtlsdr:105.3M --wfm      # use a real local frequency
+```
+brew install rtl-sdr        # macOS
+sudo apt install rtl-sdr    # Debian/Ubuntu/Raspberry Pi OS
+```
+
+**3. Plug in the dongle and run it** against a real local FM frequency:
+
+```
+voxthief inputs                              # confirm the dongle is listed
+voxthief listen --input rtlsdr:105.3M --wfm  # use a strong local station
 ```
 
 **What success looks like:** the level meter moves off the floor, the status bar
@@ -50,9 +77,11 @@ Notes:
   pick a **talk/news** station for a clean readout. Either way, audio + a moving
   meter proves your RF path works.
 - Nothing shows up? Try a different, stronger station, check the antenna, or run
-  `./voxthief calibrate --input rtlsdr:105.3M --wfm` to see the signal level.
+  `voxthief calibrate --input rtlsdr:105.3M --wfm` to see the signal level.
 
-Once that works, move on to the real use cases below — NOAA weather
+The first run downloads the whisper and Silero-VAD models into your data
+directory (progress shown in the UI); everything after that is offline. Once the
+smoke test works, move on to the real use cases below — NOAA weather
 (`--input rtlsdr:162.550M`, narrowband) or a radio into your sound card.
 
 ## Meet the user at whatever hardware they have
@@ -65,40 +94,27 @@ running:
 - A Baofeng into the PC's **native 3.5mm port**
 - An **RTL-SDR dongle** with no radio at all
 
-## Prerequisites
+## Requirements
 
-voxthief statically links whisper.cpp via cgo, so a build needs a C/C++
-toolchain and cmake (in addition to Go 1.26+):
-
-- **macOS:** `xcode-select --install` and `brew install cmake`
-- **Linux:** `sudo apt install build-essential cmake` (or the dnf equivalent)
-- **Windows:** MSYS2 with `mingw-w64-ucrt-x86_64-gcc` and `-cmake` (cgo does not use MSVC)
-
-For the RTL-SDR input you also need the rtl-sdr command-line tools
-(`brew install rtl-sdr`, `apt install rtl-sdr`, etc.).
-
-## Build
+The prebuilt binaries are self-contained (whisper.cpp is statically linked) —
+the only runtime dependency is the **rtl-sdr command-line tools**, and only if
+you use the RTL-SDR input:
 
 ```
-git clone --recurse-submodules https://github.com/pid1/voxthief
-cd voxthief
-make build            # builds whisper.cpp statically, then the binary
-./voxthief version
+brew install rtl-sdr        # macOS
+sudo apt install rtl-sdr    # Debian/Ubuntu/Raspberry Pi OS
 ```
 
-`make build` is the only supported entry point. For a quick capture-only build
-without the C toolchain (no transcription), use `make build-nowhisper`.
+Models download themselves on first run. To build from source instead of using a
+release binary, see [Development](#development).
 
-## Quick start
+## First run
 
 ```
 voxthief config init                       # writes a commented config (mode 0600)
 voxthief inputs                            # list every usable input
 voxthief listen --input soundcard:default  # start listening
 ```
-
-The first run downloads the whisper and Silero-VAD models into your data
-directory; progress is shown in the UI.
 
 ## End-user setup
 
@@ -239,6 +255,41 @@ binaries are unsigned in v0, so Gatekeeper quarantines them; clear it with:
 ```
 xattr -d com.apple.quarantine ./voxthief
 ```
+
+## Development
+
+Building from source is only needed if you're hacking on voxthief or targeting a
+platform without a release binary. voxthief statically links whisper.cpp via
+cgo, so a build needs **Go 1.26+**, **cmake**, and a **C/C++ toolchain**:
+
+| Platform | Toolchain |
+|---|---|
+| macOS | `xcode-select --install` and `brew install cmake` |
+| Linux | `sudo apt install build-essential cmake` (or the dnf/pacman equivalent) |
+| Windows | MSYS2 with `mingw-w64-ucrt-x86_64-gcc` and `-cmake` (cgo does not use MSVC) |
+
+Then the build is the same everywhere:
+
+```
+git clone --recurse-submodules https://github.com/pid1/voxthief
+cd voxthief
+make build          # builds whisper.cpp statically, then the binary
+./voxthief version
+```
+
+Other Makefile targets (identical across platforms):
+
+| Target | What it does |
+|---|---|
+| `make build` | Static whisper.cpp + the voxthief binary (`-tags whisper`) |
+| `make build-nowhisper` | Capture-only build with no C toolchain (no transcription) |
+| `make whisper` | Just the whisper.cpp static libraries |
+| `make test` | `go test -race ./...` |
+| `make lint` | golangci-lint |
+| `make generate` | Regenerate sqlc code |
+
+Releases are produced automatically: every merge to `main` builds and publishes
+tagged binaries for all five targets above via GitHub Actions.
 
 ## Legal
 

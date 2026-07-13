@@ -106,7 +106,7 @@ func (o Options) worker(ctx context.Context, segments <-chan audio.Segment) {
 		}
 		return
 	}
-	defer tr.Close()
+	defer func() { _ = tr.Close() }()
 
 	for seg := range segments {
 		o.emit(events.TranscribingMsg{QueueDepth: len(segments) + 1})

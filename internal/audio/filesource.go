@@ -95,7 +95,7 @@ func decodeWAVMono16k(path string) ([]float32, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	var riff [12]byte
 	if _, err := io.ReadFull(f, riff[:]); err != nil {

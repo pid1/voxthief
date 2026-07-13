@@ -248,7 +248,7 @@ func EnumerateCaptureDevices() ([]DeviceInfo, error) {
 		cctx.Free()
 	}()
 
-	devices, err := cctx.Context.Devices(malgo.Capture)
+	devices, err := cctx.Devices(malgo.Capture)
 	if err != nil {
 		return nil, fmt.Errorf("enumerate capture devices: %w", err)
 	}
@@ -256,7 +256,7 @@ func EnumerateCaptureDevices() ([]DeviceInfo, error) {
 	for i, d := range devices {
 		ch := 0
 		// The basic listing omits format detail; query full info for channels.
-		if full, ferr := cctx.Context.DeviceInfo(malgo.Capture, d.ID, malgo.Shared); ferr == nil {
+		if full, ferr := cctx.DeviceInfo(malgo.Capture, d.ID, malgo.Shared); ferr == nil {
 			for _, f := range full.Formats {
 				if int(f.Channels) > ch {
 					ch = int(f.Channels)

@@ -41,7 +41,7 @@ func runCalibrate(cmd *cobra.Command, _ []string) error {
 	if err != nil {
 		return err
 	}
-	defer source.Stop()
+	defer func() { _ = source.Stop() }()
 
 	fmt.Printf("sampling %s for %ds — keep the channel idle for an accurate noise floor…\n",
 		source.Descriptor(), seconds)

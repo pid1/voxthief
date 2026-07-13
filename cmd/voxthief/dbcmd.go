@@ -22,7 +22,7 @@ func newDBCmd() *cobra.Command {
 				if err != nil {
 					return err
 				}
-				defer store.Close()
+				defer func() { _ = store.Close() }()
 				v, err := store.Upgrade(cmd.Context())
 				if err != nil {
 					return err
@@ -39,7 +39,7 @@ func newDBCmd() *cobra.Command {
 				if err != nil {
 					return err
 				}
-				defer store.Close()
+				defer func() { _ = store.Close() }()
 				cur, head, err := store.Status(cmd.Context())
 				if err != nil {
 					return err

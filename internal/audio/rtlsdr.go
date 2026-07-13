@@ -257,7 +257,7 @@ func (s *RTLSDRSource) Stop() error {
 
 	done := make(chan struct{})
 	go func() {
-		s.reap()
+		_ = s.reap()
 		close(done)
 	}()
 

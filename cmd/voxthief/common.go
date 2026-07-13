@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -162,12 +161,4 @@ func addSDRFlags(cmd *cobra.Command) {
 	cmd.Flags().Int("ppm", 0, "SDR frequency correction in ppm (rtlsdr only)")
 	cmd.Flags().Int("sdr-device", 0, "SDR device index (rtlsdr only)")
 	cmd.Flags().Bool("wfm", false, "wideband (broadcast) FM instead of narrowband (rtlsdr only)")
-}
-
-// atoiDefault parses s or returns def.
-func atoiDefault(s string, def int) int {
-	if n, err := strconv.Atoi(s); err == nil {
-		return n
-	}
-	return def
 }
