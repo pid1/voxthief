@@ -1,0 +1,56 @@
+# PR checks (§15.2): lint, vet, race tests on linux+macos with the whisper.cpp
+# static build cached, plus one linux/amd64 build smoke. Full five-target
+# builds are reserved for release.yml to keep PR feedback fast.
+name: ci
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: go vet
+        run: go vet ./...
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+          - os: macos-14
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: Install cmake (linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y cmake
+      - name: Cache whisper.cpp static build
+        uses: actions/cache@v4
+        with:
+          path: third_party/whisper.cpp/build
+          key: whisper-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.gitmodules', 'Makefile') }}-${{ hashFiles('third_party/whisper.cpp/CMakeLists.txt') }}
+      - name: Build whisper.cpp (static)
+        run: make whisper
+      - name: Race tests (default build)
+        run: go test -race ./...
+      - name: Build smoke (whisper)
+        run: make build && ./voxthief version

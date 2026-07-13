@@ -1,0 +1,19 @@
+# golangci-lint configuration (§13). Run: make lint
+version: "2"
+
+run:
+  build-tags:
+    - whisper
+
+linters:
+  enable:
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - misspell
+    - unconvert
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

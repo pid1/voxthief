@@ -1,0 +1,16 @@
+# build output
+/voxthief
+/voxthief.exe
+/dist/
+
+# whisper.cpp build tree (submodule source is tracked; its build is not)
+/third_party/whisper.cpp/build/
+
+# local data / models (never committed)
+*.db
+*.db-wal
+*.db-shm
+*.wav
+
+# editor / OS
+.DS_Store
