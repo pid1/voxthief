@@ -52,11 +52,11 @@ func NewHeadlessEmitter(out, errw io.Writer, verbose bool) func(any) {
 			_ = enc.Encode(rec)
 		case events.StatusMsg:
 			if m.Warn {
-				fmt.Fprintln(errw, "warning:", m.Text)
+				_, _ = fmt.Fprintln(errw, "warning:", m.Text)
 			}
 		case events.SquelchOpenedMsg, events.SquelchClosedMsg, events.LevelMsg:
 			if verbose {
-				fmt.Fprintf(errw, "%T %+v\n", m, m)
+				_, _ = fmt.Fprintf(errw, "%T %+v\n", m, m)
 			}
 		}
 	}

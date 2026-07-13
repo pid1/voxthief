@@ -163,7 +163,7 @@ func (c *Client) post(ctx context.Context, path string, form url.Values) (int, p
 	if err != nil {
 		return 0, pushoverResponse{}, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	body, _ := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
 	var pr pushoverResponse
 	_ = json.Unmarshal(body, &pr)

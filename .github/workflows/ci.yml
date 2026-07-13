@@ -21,9 +21,12 @@ jobs:
       - name: go vet
         run: go vet ./...
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
-        with:
-          version: latest
+        # Install from source so it is built with the same (new) Go toolchain as
+        # the module targets; prebuilt releases lag and refuse a newer go
+        # directive ("built with go1.24 < targeted 1.26").
+        run: |
+          go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest
+          golangci-lint run --timeout=5m ./...
 
   test:
     strategy:

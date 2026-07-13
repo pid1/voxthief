@@ -42,8 +42,14 @@ func Open(path string) (*Store, error) {
 	if err != nil {
 		return nil, err
 	}
-	// WAL permits one writer; the pool may still serve concurrent readers.
-	sdb.SetMaxOpenConns(4)
+	// Single connection for the whole process. With a multi-connection pool a
+	// read can land on a different connection than the write that preceded it,
+	// and under WAL that reader may not yet see the just-committed rows (the
+	// behavior differs by platform — it works on macOS but not on Linux, which
+	// silently lost rows in CI). One connection guarantees read-your-writes and
+	// matches the single-writer discipline (§3.2); WAL still lets a SEPARATE
+	// process (e.g. `voxthief export`) read concurrently.
+	sdb.SetMaxOpenConns(1)
 	if err := sdb.PingContext(context.Background()); err != nil {
 		_ = sdb.Close()
 		return nil, err

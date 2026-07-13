@@ -61,7 +61,7 @@ func runListen(cmd *cobra.Command, _ []string) error {
 	if err != nil {
 		return err
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 	if err := store.EnsureHead(cmd.Context()); err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func runListen(cmd *cobra.Command, _ []string) error {
 	headless, _ := cmd.Flags().GetBool("headless")
 	verbose, _ := cmd.Flags().GetBool("verbose")
 	if logFile := setupLogging(headless, verbose, filepath.Join(filepath.Dir(dbPath), "voxthief.log")); logFile != nil {
-		defer logFile.Close()
+		defer func() { _ = logFile.Close() }()
 	}
 
 	// Audio retention: prune old WAVs at startup (§5).
@@ -246,13 +246,4 @@ func transcriberFactory(ctx context.Context, cfg config.Config, emit func(any)) 
 			VAD:           true,
 		})
 	}
-}
-
-// modelPathFor is a helper for other commands needing the resolved model file.
-func modelPathFor(cfg config.Config) (string, error) {
-	dir, err := config.ResolveModelsDir()
-	if err != nil {
-		return "", err
-	}
-	return filepath.Join(dir, asr.ModelFilename(cfg.Transcription.Model)), nil
 }

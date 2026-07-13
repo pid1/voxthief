@@ -31,7 +31,7 @@ func runExport(cmd *cobra.Command, _ []string) error {
 	if err != nil {
 		return err
 	}
-	defer store.Close()
+	defer func() { _ = store.Close() }()
 	if err := store.EnsureHead(cmd.Context()); err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func runExport(cmd *cobra.Command, _ []string) error {
 		if err != nil {
 			return err
 		}
-		defer f.Close()
+		defer func() { _ = f.Close() }()
 		w = f
 	}
 

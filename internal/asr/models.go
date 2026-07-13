@@ -107,7 +107,7 @@ func download(ctx context.Context, url, tmp, wantSHA, name string, notify func(e
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("download %s: HTTP %d", name, resp.StatusCode)
 	}
@@ -116,7 +116,7 @@ func download(ctx context.Context, url, tmp, wantSHA, name string, notify func(e
 	if err != nil {
 		return err
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	h := sha256.New()
 	total := resp.ContentLength
