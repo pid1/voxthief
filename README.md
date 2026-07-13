@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo.png" alt="voxthief" width="240">
+  <img src="logo.png" alt="voxthief" width="100%">
 </p>
 
 # voxthief
