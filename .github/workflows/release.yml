@@ -1,0 +1,183 @@
+# Release pipeline (§15.3): every merge to main builds all five targets and
+# publishes a tagged GitHub Release. Ordering guarantees a tag can NEVER exist
+# without artifacts — the tag is pushed only after every build succeeds.
+name: release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  # 1) Decide the next version. Serialized so concurrent merges cannot race.
+  #    No tag is pushed here.
+  version:
+    runs-on: ubuntu-22.04
+    concurrency:
+      group: release
+      cancel-in-progress: false
+    outputs:
+      version: ${{ steps.compute.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: compute
+        name: Compute next version
+        run: |
+          set -euo pipefail
+          latest=$(git tag -l 'v*' --sort=-v:refname | head -n1)
+          msg=$(git log -1 --pretty=%B)
+          if [ -z "$latest" ]; then
+            version="0.1.0"
+          else
+            v=${latest#v}
+            IFS='.' read -r major minor patch <<< "$v"
+            if echo "$msg" | grep -q '#major'; then
+              major=$((major+1)); minor=0; patch=0
+            elif echo "$msg" | grep -q '#minor'; then
+              minor=$((minor+1)); patch=0
+            else
+              patch=$((patch+1))
+            fi
+            version="${major}.${minor}.${patch}"
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "next version: v$version"
+
+  # 2) Build every target natively (cgo rules out single-host cross-compile).
+  build:
+    needs: version
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - target: linux-amd64
+            os: ubuntu-22.04
+            goos: linux
+            goarch: amd64
+          - target: linux-arm64
+            os: ubuntu-22.04-arm
+            goos: linux
+            goarch: arm64
+          - target: darwin-arm64
+            os: macos-14
+            goos: darwin
+            goarch: arm64
+          - target: darwin-amd64
+            os: macos-13
+            goos: darwin
+            goarch: amd64
+          - target: windows-amd64
+            os: windows-latest
+            goos: windows
+            goarch: amd64
+    runs-on: ${{ matrix.os }}
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: Install cmake (linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y cmake
+
+      - name: Setup MSYS2 (windows)
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          install: >-
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-cmake
+            make
+          path-type: inherit
+
+      - name: Cache whisper.cpp static build
+        uses: actions/cache@v4
+        with:
+          path: third_party/whisper.cpp/build
+          key: whisper-${{ matrix.target }}-${{ hashFiles('.gitmodules') }}-${{ hashFiles('third_party/whisper.cpp/CMakeLists.txt') }}
+
+      - name: Build (unix)
+        if: runner.os != 'Windows'
+        run: |
+          make whisper
+          CGO_ENABLED=1 go build -tags whisper \
+            -ldflags "-s -w -X main.version=${VERSION} -X main.commit=${GITHUB_SHA::7}" \
+            -o voxthief ./cmd/voxthief
+          ./voxthief version
+
+      - name: Build (windows/msys2)
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: |
+          make whisper
+          CGO_ENABLED=1 go build -tags whisper \
+            -ldflags "-s -w -X main.version=${VERSION} -X main.commit=${GITHUB_SHA::7}" \
+            -o voxthief.exe ./cmd/voxthief
+          ./voxthief.exe version
+
+      - name: Package
+        shell: bash
+        run: |
+          set -euo pipefail
+          name="voxthief_${VERSION}_${{ matrix.goos }}_${{ matrix.goarch }}"
+          mkdir -p "dist/$name"
+          cp LICENSE README.md "dist/$name/"
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            cp voxthief.exe "dist/$name/"
+            (cd dist && 7z a "${name}.zip" "$name" >/dev/null)
+          else
+            cp voxthief "dist/$name/"
+            (cd dist && tar czf "${name}.tar.gz" "$name")
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: voxthief-${{ matrix.target }}
+          path: |
+            dist/*.tar.gz
+            dist/*.zip
+
+  # 3) Only after ALL builds succeed: checksum, tag at the merge SHA, release.
+  release:
+    needs: [version, build]
+    runs-on: ubuntu-22.04
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      - name: Checksums
+        run: |
+          cd artifacts
+          sha256sum * > SHA256SUMS
+          cat SHA256SUMS
+      - name: Push annotated tag at merge SHA
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${VERSION}" -m "voxthief v${VERSION}" "${GITHUB_SHA}"
+          git push origin "v${VERSION}"
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          generate_release_notes: true
+          files: |
+            artifacts/*.tar.gz
+            artifacts/*.zip
+            artifacts/SHA256SUMS
