@@ -1,4 +1,4 @@
-# Release pipeline (§15.3): every merge to main builds all five targets and
+# Release pipeline (§15.3): every merge to main builds all four targets and
 # publishes a tagged GitHub Release. Ordering guarantees a tag can NEVER exist
 # without artifacts — the tag is pushed only after every build succeeds.
 name: release
@@ -66,10 +66,6 @@ jobs:
             os: macos-14
             goos: darwin
             goarch: arm64
-          - target: darwin-amd64
-            os: macos-13
-            goos: darwin
-            goarch: amd64
           - target: windows-amd64
             os: windows-latest
             goos: windows
