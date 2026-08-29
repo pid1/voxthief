@@ -14,8 +14,8 @@ jobs:
   lint:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version: stable
       - name: go vet
@@ -37,17 +37,17 @@ jobs:
           - os: macos-14
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version: stable
       - name: Install cmake (linux)
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y cmake
       - name: Cache whisper.cpp static build
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: third_party/whisper.cpp/build
           key: whisper-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.gitmodules', 'Makefile') }}-${{ hashFiles('third_party/whisper.cpp/CMakeLists.txt') }}

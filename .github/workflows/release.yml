@@ -21,7 +21,7 @@ jobs:
     outputs:
       version: ${{ steps.compute.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - id: compute
@@ -78,10 +78,10 @@ jobs:
     env:
       VERSION: ${{ needs.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v7
         with:
           go-version: stable
 
@@ -101,7 +101,7 @@ jobs:
           path-type: inherit
 
       - name: Cache whisper.cpp static build
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: third_party/whisper.cpp/build
           key: whisper-${{ matrix.target }}-${{ hashFiles('.gitmodules') }}-${{ hashFiles('third_party/whisper.cpp/CMakeLists.txt') }}
@@ -141,7 +141,7 @@ jobs:
           fi
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: voxthief-${{ matrix.target }}
           path: |
@@ -155,9 +155,9 @@ jobs:
     env:
       VERSION: ${{ needs.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
           merge-multiple: true
@@ -173,7 +173,7 @@ jobs:
           git tag -a "v${VERSION}" -m "voxthief v${VERSION}" "${GITHUB_SHA}"
           git push origin "v${VERSION}"
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ env.VERSION }}
           generate_release_notes: true
