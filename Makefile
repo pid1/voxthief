@@ -38,6 +38,18 @@ $(WHISPER_LIB):
 		-DWHISPER_BUILD_EXAMPLES=OFF \
 		-DCMAKE_BUILD_TYPE=Release
 	cmake --build $(WHISPER_DIR)/build --config Release -j
+	@# MinGW's cmake emits the ggml archives with no `lib` prefix (libwhisper.a
+	@# keeps one), so -lggml/-lggml-cpu/-lggml-base find nothing and the link
+	@# fails on windows only. Add prefixed copies; a no-op where cmake already
+	@# writes the prefix, so darwin and linux are unaffected.
+	@for d in $(WHISPER_DIR)/build/src $(WHISPER_DIR)/build/ggml/src; do \
+		for f in "$$d"/*.a; do \
+			[ -f "$$f" ] || continue; \
+			b=$$(basename "$$f"); \
+			case "$$b" in lib*) continue ;; esac; \
+			cp -f "$$f" "$$d/lib$$b"; \
+		done; \
+	done
 
 ## build: build the binary with whisper linked in (CGO)
 build: whisper

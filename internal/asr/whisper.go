@@ -26,7 +26,12 @@ package asr
 #cgo darwin LDFLAGS: -framework Accelerate -framework Metal -framework MetalKit -framework Foundation -framework CoreGraphics -framework QuartzCore
 // linux/windows: CPU-only static build.
 #cgo linux LDFLAGS: -lggml-base
-#cgo windows LDFLAGS: -lggml-base
+// windows: mingw links libstdc++ statically, and GNU ld resolves archives
+// strictly left to right, so the -lstdc++ above cannot satisfy ggml-base's
+// C++ references — it is listed before this library. Repeating it after
+// ggml-base closes those. Linux is unaffected because libstdc++ is shared
+// there, and darwin uses libc++ via clang.
+#cgo windows LDFLAGS: -lggml-base -lstdc++
 #include <stdlib.h>
 #include <math.h>
 #include "ggml.h"
