@@ -36,13 +36,13 @@ work without waiting for anyone to key up.
 [latest release](https://github.com/pid1/voxthief/releases/latest) and put it on
 your `PATH`:
 
-| Platform | Asset |
-|---|---|
-| macOS (Apple Silicon) | `voxthief_*_darwin_arm64.tar.gz` |
-| macOS (Intel) | `voxthief_*_darwin_amd64.tar.gz` |
-| Linux x86-64 | `voxthief_*_linux_amd64.tar.gz` |
-| Linux ARM64 (Raspberry Pi 4/5) | `voxthief_*_linux_arm64.tar.gz` |
-| Windows x86-64 | `voxthief_*_windows_amd64.zip` |
+| Platform                       | Asset                            |
+| ------------------------------ | -------------------------------- |
+| macOS (Apple Silicon)          | `voxthief_*_darwin_arm64.tar.gz` |
+| macOS (Intel)                  | `voxthief_*_darwin_amd64.tar.gz` |
+| Linux x86-64                   | `voxthief_*_linux_amd64.tar.gz`  |
+| Linux ARM64 (Raspberry Pi 4/5) | `voxthief_*_linux_arm64.tar.gz`  |
+| Windows x86-64                 | `voxthief_*_windows_amd64.zip`   |
 
 ```
 tar -xzf voxthief_*_*.tar.gz          # unzip on Windows
@@ -71,6 +71,7 @@ shows `SQUELCH OPEN`, and within a few seconds transcribed lines start appearing
 Press `q` to quit (it drains and transcribes the final clip on the way out).
 
 Notes:
+
 - **`--wfm`** selects wideband (broadcast) FM. Without it, voxthief uses
   narrowband FM for 2-way radio and broadcast stations will sound garbled.
 - Audio is resampled to 16 kHz, so music sounds dull and won't transcribe well —
@@ -262,11 +263,11 @@ Building from source is only needed if you're hacking on voxthief or targeting a
 platform without a release binary. voxthief statically links whisper.cpp via
 cgo, so a build needs **Go 1.26+**, **cmake**, and a **C/C++ toolchain**:
 
-| Platform | Toolchain |
-|---|---|
-| macOS | `xcode-select --install` and `brew install cmake` |
-| Linux | `sudo apt install build-essential cmake` (or the dnf/pacman equivalent) |
-| Windows | MSYS2 with `mingw-w64-ucrt-x86_64-gcc` and `-cmake` (cgo does not use MSVC) |
+| Platform | Toolchain                                                                   |
+| -------- | --------------------------------------------------------------------------- |
+| macOS    | `xcode-select --install` and `brew install cmake`                           |
+| Linux    | `sudo apt install build-essential cmake` (or the dnf/pacman equivalent)     |
+| Windows  | MSYS2 with `mingw-w64-ucrt-x86_64-gcc` and `-cmake` (cgo does not use MSVC) |
 
 Then the build is the same everywhere:
 
@@ -279,14 +280,14 @@ make build          # builds whisper.cpp statically, then the binary
 
 Other Makefile targets (identical across platforms):
 
-| Target | What it does |
-|---|---|
-| `make build` | Static whisper.cpp + the voxthief binary (`-tags whisper`) |
-| `make build-nowhisper` | Capture-only build with no C toolchain (no transcription) |
-| `make whisper` | Just the whisper.cpp static libraries |
-| `make test` | `go test -race ./...` |
-| `make lint` | golangci-lint |
-| `make generate` | Regenerate sqlc code |
+| Target                 | What it does                                               |
+| ---------------------- | ---------------------------------------------------------- |
+| `make build`           | Static whisper.cpp + the voxthief binary (`-tags whisper`) |
+| `make build-nowhisper` | Capture-only build with no C toolchain (no transcription)  |
+| `make whisper`         | Just the whisper.cpp static libraries                      |
+| `make test`            | `go test -race ./...`                                      |
+| `make lint`            | golangci-lint                                              |
+| `make generate`        | Regenerate sqlc code                                       |
 
 Releases are produced automatically: every merge to `main` builds and publishes
 tagged binaries for all five targets above via GitHub Actions.
