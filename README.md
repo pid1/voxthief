@@ -39,7 +39,6 @@ your `PATH`:
 | Platform | Asset |
 |---|---|
 | macOS (Apple Silicon) | `voxthief_*_darwin_arm64.tar.gz` |
-| macOS (Intel) | `voxthief_*_darwin_amd64.tar.gz` |
 | Linux x86-64 | `voxthief_*_linux_amd64.tar.gz` |
 | Linux ARM64 (Raspberry Pi 4/5) | `voxthief_*_linux_arm64.tar.gz` |
 | Windows x86-64 | `voxthief_*_windows_amd64.zip` |
