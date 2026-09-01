@@ -1,5 +1,5 @@
 # PR checks (§15.2): lint, vet, race tests on linux+macos with the whisper.cpp
-# static build cached, plus one linux/amd64 build smoke. Full five-target
+# static build cached, plus one linux/amd64 build smoke. Full four-target
 # builds are reserved for release.yml to keep PR feedback fast.
 name: ci
 

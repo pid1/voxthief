@@ -36,15 +36,14 @@ work without waiting for anyone to key up.
 [latest release](https://github.com/pid1/voxthief/releases/latest) and put it on
 your `PATH`:
 
-| Platform                       | Asset                            |
-| ------------------------------ | -------------------------------- |
-| macOS (Apple Silicon)          | `voxthief_*_darwin_arm64.tar.gz` |
-| macOS (Intel)                  | `voxthief_*_darwin_amd64.tar.gz` |
-| Linux x86-64                   | `voxthief_*_linux_amd64.tar.gz`  |
-| Linux ARM64 (Raspberry Pi 4/5) | `voxthief_*_linux_arm64.tar.gz`  |
-| Windows x86-64                 | `voxthief_*_windows_amd64.zip`   |
+| Platform | Asset |
+|---|---|
+| macOS (Apple Silicon) | `voxthief_*_darwin_arm64.tar.gz` |
+| Linux x86-64 | `voxthief_*_linux_amd64.tar.gz` |
+| Linux ARM64 (Raspberry Pi 4/5) | `voxthief_*_linux_arm64.tar.gz` |
+| Windows x86-64 | `voxthief_*_windows_amd64.zip` |
 
-```text
+```
 tar -xzf voxthief_*_*.tar.gz          # unzip on Windows
 sudo mv voxthief /usr/local/bin/      # or anywhere on your PATH
 ```
@@ -54,14 +53,14 @@ On macOS the binary is unsigned, so clear the quarantine flag once:
 
 **2. Install the RTL-SDR runtime tools** (only needed for the SDR input):
 
-```bash
+```
 brew install rtl-sdr        # macOS
 sudo apt install rtl-sdr    # Debian/Ubuntu/Raspberry Pi OS
 ```
 
 **3. Plug in the dongle and run it** against a real local FM frequency:
 
-```text
+```
 voxthief inputs                              # confirm the dongle is listed
 voxthief listen --input rtlsdr:105.3M --wfm  # use a strong local station
 ```
@@ -71,7 +70,6 @@ shows `SQUELCH OPEN`, and within a few seconds transcribed lines start appearing
 Press `q` to quit (it drains and transcribes the final clip on the way out).
 
 Notes:
-
 - **`--wfm`** selects wideband (broadcast) FM. Without it, voxthief uses
   narrowband FM for 2-way radio and broadcast stations will sound garbled.
 - Audio is resampled to 16 kHz, so music sounds dull and won't transcribe well —
@@ -101,7 +99,7 @@ The prebuilt binaries are self-contained (whisper.cpp is statically linked) —
 the only runtime dependency is the **rtl-sdr command-line tools**, and only if
 you use the RTL-SDR input:
 
-```bash
+```
 brew install rtl-sdr        # macOS
 sudo apt install rtl-sdr    # Debian/Ubuntu/Raspberry Pi OS
 ```
@@ -111,7 +109,7 @@ release binary, see [Development](#development).
 
 ## First run
 
-```text
+```
 voxthief config init                       # writes a commented config (mode 0600)
 voxthief inputs                            # list every usable input
 voxthief listen --input soundcard:default  # start listening
@@ -125,7 +123,7 @@ Mono 3.5mm cable from the radio's speaker jack (the larger pin on the Kenwood
 connector) into the adapter's mic port. Radio volume 25-30% to avoid clipping.
 Disable AGC if the OS exposes it.
 
-```text
+```
 voxthief inputs
 voxthief listen --input soundcard:"USB PnP Sound Device"
 ```
@@ -135,7 +133,7 @@ voxthief listen --input soundcard:"USB PnP Sound Device"
 Desktop: prefer line-in. Laptop: combo jacks are TRRS and need a TRRS headset
 splitter — a plain TRS cable alone will not register.
 
-```text
+```
 voxthief listen --input soundcard:default
 voxthief listen --input soundcard:1
 ```
@@ -144,7 +142,7 @@ voxthief listen --input soundcard:1
 
 Requires the rtl-sdr command-line tools and an antenna for the target band.
 
-```text
+```
 voxthief listen --input rtlsdr:146.520M
 voxthief listen --input rtlsdr:462.7125M --gain 28 --squelch 60 --ppm 1
 voxthief listen --input rtlsdr:162.550M --sdr-device 1 --headless
@@ -203,7 +201,7 @@ cooldown_s = 0              # suppress repeat fires of this rule within the wind
 
 4. Verify end to end:
 
-```text
+```
 voxthief alerts test        # validates credentials, then sends a real push
 ```
 
@@ -214,7 +212,7 @@ exhausts the hourly cap, not your monthly quota.
 
 ## Headless / daemon
 
-```text
+```
 voxthief listen --headless
 ```
 
@@ -226,7 +224,7 @@ SIGINT/SIGTERM.
 
 ## Export
 
-```text
+```
 voxthief export --since 24h --format jsonl
 voxthief export --since 2026-07-01 --until 2026-07-08 --format csv -o week.csv
 voxthief export --since 6h --include-filtered --format txt
@@ -234,7 +232,7 @@ voxthief export --since 6h --include-filtered --format txt
 
 ## Commands
 
-```text
+```
 voxthief listen [--input SPEC] [--headless] [--db PATH] [--model NAME]
                 [--threshold DBFS] [--gain auto|DB] [--squelch N] [--ppm N]
                 [--sdr-device N] [--config PATH] [--verbose]
@@ -253,7 +251,7 @@ voxthief version
 The first capture triggers a microphone permission prompt (expected). Release
 binaries are unsigned in v0, so Gatekeeper quarantines them; clear it with:
 
-```text
+```
 xattr -d com.apple.quarantine ./voxthief
 ```
 
@@ -263,15 +261,15 @@ Building from source is only needed if you're hacking on voxthief or targeting a
 platform without a release binary. voxthief statically links whisper.cpp via
 cgo, so a build needs **Go 1.26+**, **cmake**, and a **C/C++ toolchain**:
 
-| Platform | Toolchain                                                                   |
-| -------- | --------------------------------------------------------------------------- |
-| macOS    | `xcode-select --install` and `brew install cmake`                           |
-| Linux    | `sudo apt install build-essential cmake` (or the dnf/pacman equivalent)     |
-| Windows  | MSYS2 with `mingw-w64-ucrt-x86_64-gcc` and `-cmake` (cgo does not use MSVC) |
+| Platform | Toolchain |
+|---|---|
+| macOS | `xcode-select --install` and `brew install cmake` |
+| Linux | `sudo apt install build-essential cmake` (or the dnf/pacman equivalent) |
+| Windows | MSYS2 with `mingw-w64-ucrt-x86_64-gcc` and `-cmake` (cgo does not use MSVC) |
 
 Then the build is the same everywhere:
 
-```bash
+```
 git clone --recurse-submodules https://github.com/pid1/voxthief
 cd voxthief
 make build          # builds whisper.cpp statically, then the binary
@@ -280,14 +278,14 @@ make build          # builds whisper.cpp statically, then the binary
 
 Other Makefile targets (identical across platforms):
 
-| Target                 | What it does                                               |
-| ---------------------- | ---------------------------------------------------------- |
-| `make build`           | Static whisper.cpp + the voxthief binary (`-tags whisper`) |
-| `make build-nowhisper` | Capture-only build with no C toolchain (no transcription)  |
-| `make whisper`         | Just the whisper.cpp static libraries                      |
-| `make test`            | `go test -race ./...`                                      |
-| `make lint`            | golangci-lint                                              |
-| `make generate`        | Regenerate sqlc code                                       |
+| Target | What it does |
+|---|---|
+| `make build` | Static whisper.cpp + the voxthief binary (`-tags whisper`) |
+| `make build-nowhisper` | Capture-only build with no C toolchain (no transcription) |
+| `make whisper` | Just the whisper.cpp static libraries |
+| `make test` | `go test -race ./...` |
+| `make lint` | golangci-lint |
+| `make generate` | Regenerate sqlc code |
 
 Releases are produced automatically: every merge to `main` builds and publishes
 tagged binaries for all five targets above via GitHub Actions.
