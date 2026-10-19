@@ -259,7 +259,7 @@ xattr -d com.apple.quarantine ./voxthief
 
 Building from source is only needed if you're hacking on voxthief or targeting a
 platform without a release binary. voxthief statically links whisper.cpp via
-cgo, so a build needs **Go 1.26+**, **cmake**, and a **C/C++ toolchain**:
+cgo, so a build needs **Go 1.27+**, **cmake**, and a **C/C++ toolchain**:
 
 | Platform | Toolchain |
 |---|---|
