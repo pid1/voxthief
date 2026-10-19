@@ -1,5 +1,5 @@
 # voxthief — the Makefile is the only supported build entry point (§13).
-# Prerequisites: Go 1.26+, cmake, a C/C++ toolchain (Xcode CLT / gcc /
+# Prerequisites: Go 1.27+, cmake, a C/C++ toolchain (Xcode CLT / gcc /
 # MSYS2 mingw-w64). cgo does not use MSVC on Windows.
 
 MODULE  := github.com/pid1/voxthief

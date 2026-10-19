@@ -1,8 +1,6 @@
 module github.com/pid1/voxthief
 
-go 1.26
-
-toolchain go1.26.5
+go 1.27
 
 require (
 	charm.land/bubbles/v2 v2.1.1
