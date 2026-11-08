@@ -30,15 +30,15 @@ var testBaseOverride string
 // whisper.cpp repo; the VAD model from ggml-org/whisper-vad (§6).
 var registry = map[string]modelEntry{
 	"ggml-small.en-q8_0.bin": {
-		URL:    "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.en-q8_0.bin",
+		URL:    "https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-small.en-q8_0.bin",
 		SHA256: "67a179f608ea6114bd3fdb9060e762b588a3fb3bd00c4387971be4d177958067",
 	},
 	"ggml-tiny.en.bin": {
-		URL:    "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.en.bin",
+		URL:    "https://huggingface.co/ggerganov/whisper.cpp/resolve/5359861c739e955e79d9a303bcbc70fb988958b1/ggml-tiny.en.bin",
 		SHA256: "921e4cf8686fdd993dcd081a5da5b6c365bfde1162e72b08d75ac75289920b1f",
 	},
 	"ggml-silero-v6.2.0.bin": {
-		URL:    "https://huggingface.co/ggml-org/whisper-vad/resolve/main/ggml-silero-v6.2.0.bin",
+		URL:    "https://huggingface.co/ggml-org/whisper-vad/resolve/9ffd54a1e1ee413ddf265af9913beaf518d1639b/ggml-silero-v6.2.0.bin",
 		SHA256: "2aa269b785eeb53a82983a20501ddf7c1d9c48e33ab63a41391ac6c9f7fb6987",
 	},
 }
